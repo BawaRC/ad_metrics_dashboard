@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Metrics Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Ad Metrics Dashboard</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Campaign Metrics</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Name</th>
+                            <th>Impressions</th>
+                            <th>Clicks</th>
+                            <th>Conversions</th>
+                            <th>Cost</th>
+                            <th>CTR (%)</th>
+                            <th>Conversion Rate (%)</th>
+                            <th>ROI (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for campaign in campaigns %}
+                        <tr>
+                            <td>{{ campaign.name }}</td>
+                            <td>{{ campaign.impressions }}</td>
+                            <td>{{ campaign.clicks }}</td>
+                            <td>{{ campaign.conversions }}</td>
+                            <td>${{ campaign.cost }}</td>
+                            <td>{{ campaign.ctr|floatformat:2 }}</td>
+                            <td>{{ campaign.conversion_rate|floatformat:2 }}</td>
+                            <td>{{ campaign.roi|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Campaign Performance charts Dashboard</h1>
+    
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Impressions Pie Chart</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="impressionsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Conversions Donut Chart</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="conversionsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Clicks Bar Chart</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="clicksChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        fetch('/chart-data/')
+            .then(response => response.json())
+            .then(data => {
+                // Impressions Pie Chart
+                const impressionsCtx = document.getElementById('impressionsChart').getContext('2d');
+                const impressionsChart = new Chart(impressionsCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.impressions,
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#CE56FF'],
+                        }]
+                    }
+                });
+    
+                // Conversions Donut Chart
+                const conversionsCtx = document.getElementById('conversionsChart').getContext('2d');
+                const conversionsChart = new Chart(conversionsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.conversions,
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#CE56FF'],
+                        }]
+                    }
+                });
+    
+                // Clicks Bar Chart
+                const clicksCtx = document.getElementById('clicksChart').getContext('2d');
+                const clicksChart = new Chart(clicksCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Clicks',
+                            data: data.clicks,
+                            backgroundColor: '#36A2EB',
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: Math.max(...data.clicks) + 50 
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+
+</body>
+</html>
